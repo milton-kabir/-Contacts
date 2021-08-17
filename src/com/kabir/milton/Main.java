@@ -353,14 +353,53 @@ class PhoneBook implements Serializable {
         return contactsList.get(index);
     }
 
+    public static void saveToFile(PhoneBook data, File filename) {
+        FileOutputStream outputStream = null;
+        try {
+            outputStream = new FileOutputStream(filename);
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(data);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static PhoneBook loadTheFile(File filename) {
+        FileInputStream fis = null;
+        try {
+            fis = new FileInputStream(filename);
+            ObjectInputStream bis = new ObjectInputStream(fis);
+            return (PhoneBook) bis.readObject();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }
 
 public class Main implements Serializable {
     private static final long serialVersionUID = 1L;
     public static Scanner scanner = new Scanner(System.in);
     public static PhoneBook phoneBook = new PhoneBook();
+    private static File file;
 
     public static void main(String[] args) {
+        if (args.length > 0) {
+            file = new File(args[0]);
+            try {
+                if (file.createNewFile()) {
+
+                } else {
+                    phoneBook = PhoneBook.loadTheFile(file);
+                    System.out.println("open " + args[0]);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else {
+            file = null;
+        }
         mainMenu();
     }
 
@@ -491,6 +530,9 @@ public class Main implements Serializable {
             System.out.println("Enter the number:");
             String phone = scanner.nextLine();
             phoneBook.addPerson(name, surname, phone, birthDate, gender);
+            if (file != null) {
+                PhoneBook.saveToFile(phoneBook, file);
+            }
         } else if (type.equals("organization")) {
             System.out.println("Enter the organization name:");
             String name = scanner.nextLine();
@@ -499,6 +541,9 @@ public class Main implements Serializable {
             System.out.println("Enter the number:");
             String phone = scanner.nextLine();
             phoneBook.addOrganization(name, phone, address);
+            if (file != null) {
+                PhoneBook.saveToFile(phoneBook, file);
+            }
         } else {
             System.out.println("Wrong type!");
         }
@@ -514,6 +559,9 @@ public class Main implements Serializable {
             int record = scanner.nextInt();
             String n = scanner.nextLine();
             phoneBook.remove(record - 1);
+            if (file != null) {
+                PhoneBook.saveToFile(phoneBook, file);
+            }
             System.out.println("The record removed!\n");
         }
     }
@@ -528,6 +576,9 @@ public class Main implements Serializable {
             System.out.println("Select a record:");
             int number = Integer.parseInt(scanner.nextLine());
             phoneBook.editRecord(number, scanner);
+            if (file != null) {
+                PhoneBook.saveToFile(phoneBook, file);
+            }
             System.out.println("The record updated!");
         } else {
             System.out.println("No records to edit!");
